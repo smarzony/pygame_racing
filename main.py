@@ -1,6 +1,6 @@
 import pygame
 from time import time as now
-from player_class import Player_Class
+from player_class import Player_Class, FWD, BWD
 
 SCREEN_WIDTH = 640
 SCREEN_HEIGHT = 480
@@ -10,9 +10,9 @@ pygame.init()
 # definiowanie okna gry
 win = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 # wyświetlanie okna gry
-pygame.display.set_caption("Moja Gra")
+pygame.display.set_caption("Arrow Racer")
 
-img_path = 'img/player1.png'
+img_path = 'img/player_transparent.png'
 playerImg = pygame.image.load(img_path)
 
 player = Player_Class(parent=win, width=100, height=100, pos_x=0, pos_y=0, rotation=0, window_size=(SCREEN_WIDTH, SCREEN_HEIGHT), color=KOLOR, img=playerImg)
@@ -24,15 +24,31 @@ rect_small = False
 player.pos_step = 0.2
 
 rect_pulse_timer = now()
-screen_refresh_timer = now()
+tick_timer = now()
 print_debug_timer = now()
 
 while run:
-    win.fill((0,0,0))
+    win.fill((100,100,100))
     actual_time = now()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
+
+        if event.type == pygame.KEYDOWN:               
+            if event.key in (pygame.K_UP, pygame.K_DOWN):
+                player.in_motion = True
+                if event.key == pygame.K_UP:
+                    player.direction = FWD
+                else:
+                    player.direction = BWD
+
+
+        if event.type == pygame.KEYUP:               
+            # checking if key "A" was pressed
+            if event.key in (pygame.K_UP, pygame.K_DOWN):
+                player.in_motion = False
+                print("Key UP has been released")
+
 
     keys = pygame.key.get_pressed()
     if True in keys:
@@ -44,13 +60,13 @@ while run:
             # player.set_pos(player.pos_step, 0)
             player.rotate("L")
 
-        if keys[pygame.K_UP] :
+        # if keys[pygame.K_UP] :
             # player.set_pos(0, -player.pos_step)
-            player.move('FWD')
+            # player.move('FWD')
 
-        if keys[pygame.K_DOWN] :
+        # if keys[pygame.K_DOWN] :
             # player.set_pos(0, player.pos_step)
-            player.move('BWD')
+            # player.move('BWD')
 
         # if keys[pygame.K_RCTRL] :
         #     # player.rotate("R")
@@ -59,6 +75,8 @@ while run:
         #     # player.rotate("L")
 
         pygame.time.delay(1)
+
+
 
 
 
@@ -80,10 +98,14 @@ while run:
 
 
 
-    if actual_time - screen_refresh_timer > 1/60:
-        screen_refresh_timer = actual_time
+    if actual_time - tick_timer > 1/60:
+        tick_timer = actual_time
+
+        if player.in_motion:
+            player.move()
         
-        playerImg = pygame.image.load(img_path)
+        # playerImg = pygame.image.load(img_path)
+        playerImg = pygame.image.load(img_path).convert_alpha(win)
         playerImg = pygame.transform.scale(playerImg, (player.width, player.height))
         playerImg = pygame.transform.rotate(playerImg, player.rotation)
         win.blit(playerImg, (player.pos_x, player.pos_y))
