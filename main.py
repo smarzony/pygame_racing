@@ -1,6 +1,7 @@
 import pygame
 from time import time as now
-from player_class import Player_Class, FWD, BWD
+
+from lib.player import Player_Class, FWD, BWD
 
 SCREEN_WIDTH = 640
 SCREEN_HEIGHT = 480
@@ -15,13 +16,14 @@ pygame.display.set_caption("Arrow Racer")
 img_path = 'img/player_transparent.png'
 playerImg = pygame.image.load(img_path)
 
-player = Player_Class(parent=win, width=100, height=100, pos_x=0, pos_y=0, rotation=0, window_size=(SCREEN_WIDTH, SCREEN_HEIGHT), color=KOLOR, img=playerImg)
-playerImg = pygame.transform.scale(playerImg, (player.width, player.height))
+car = Player_Class(parent=win, width=100, height=100, pos_x=0, pos_y=0, rotation=0, window_size=(SCREEN_WIDTH, SCREEN_HEIGHT), color=KOLOR, img=playerImg)
+playerImg = pygame.transform.scale(playerImg, (car.motion.width, car.motion.height))
 
 run = True
 rect_small = False
 
-player.pos_step = 0.2
+speed_last = 0
+
 
 rect_pulse_timer = now()
 tick_timer = now()
@@ -36,43 +38,31 @@ while run:
 
         if event.type == pygame.KEYDOWN:               
             if event.key in (pygame.K_UP, pygame.K_DOWN):
-                player.in_motion = True
+                car.motion.start()
+                print("Accelerating ", end='')
                 if event.key == pygame.K_UP:
-                    player.direction = FWD
+                    car.motion.direction = FWD
+                    print("FWD")
                 else:
-                    player.direction = BWD
-
+                    car.motion.direction = BWD
+                    print("BWD") 
 
         if event.type == pygame.KEYUP:               
             # checking if key "A" was pressed
             if event.key in (pygame.K_UP, pygame.K_DOWN):
-                player.in_motion = False
-                print("Key UP has been released")
-
+                # car.motion.in_motion = False
+                print("Stopping")
+                car.motion.stop()
 
     keys = pygame.key.get_pressed()
     if True in keys:
         if keys[pygame.K_LEFT] :
-            # player.set_pos(-player.pos_step, 0)
-            player.rotate("R")            
+            # car.set_pos(-car.pos_step, 0)
+            car.motion.rotate("L")            
 
         if keys[pygame.K_RIGHT] :
-            # player.set_pos(player.pos_step, 0)
-            player.rotate("L")
-
-        # if keys[pygame.K_UP] :
-            # player.set_pos(0, -player.pos_step)
-            # player.move('FWD')
-
-        # if keys[pygame.K_DOWN] :
-            # player.set_pos(0, player.pos_step)
-            # player.move('BWD')
-
-        # if keys[pygame.K_RCTRL] :
-        #     # player.rotate("R")
-
-        # if keys[pygame.K_KP0] :
-        #     # player.rotate("L")
+            # car.set_pos(car.pos_step, 0)
+            car.motion.rotate("R")
 
         pygame.time.delay(1)
 
@@ -85,28 +75,37 @@ while run:
         rect_small = not rect_small
 
     if rect_small:
-        player.width = 90
-        player.height = 100
+        car.motion.width = 90
+        car.motion.height = 100
     else:
-        player.width = 100
-        player.height = 90
+        car.motion.width = 100
+        car.motion.height = 90
 
 
     if actual_time - print_debug_timer > 0.5:
         print_debug_timer = actual_time
-        # print('rotation:', player.rotation)
+        # print('rotation:', car.rotation)
+        if speed_last != car.motion.speed_actual:
+            print("speed:", car.motion.speed_actual, "in motion:", car.motion.in_motion)
 
+        speed_last = car.motion.speed_actual
 
 
     if actual_time - tick_timer > 1/60:
         tick_timer = actual_time
 
-        if player.in_motion:
-            player.move()
+        if car.motion.in_motion:
+            car.motion.calculate_speed()
+            car.motion.calculate_movement_vector()
+            car.motion.set_new_position()
+
+
+
+            # car.move()
         
         # playerImg = pygame.image.load(img_path)
         playerImg = pygame.image.load(img_path).convert_alpha(win)
-        playerImg = pygame.transform.scale(playerImg, (player.width, player.height))
-        playerImg = pygame.transform.rotate(playerImg, player.rotation)
-        win.blit(playerImg, (player.pos_x, player.pos_y))
+        playerImg = pygame.transform.scale(playerImg, (car.motion.width, car.motion.height))
+        playerImg = pygame.transform.rotate(playerImg, car.motion.rotation)
+        win.blit(playerImg, (car.motion.x, car.motion.y))
         pygame.display.update()
