@@ -38,21 +38,20 @@ while run:
 
         if event.type == pygame.KEYDOWN:               
             if event.key in (pygame.K_UP, pygame.K_DOWN):
-                car.motion.start()
                 print("Accelerating ", end='')
                 if event.key == pygame.K_UP:
-                    car.motion.direction = FWD
+                    car.motion.direction = FWD                    
                     print("FWD")
                 else:
                     car.motion.direction = BWD
-                    print("BWD") 
+                    print("BWD")
+                    
+                car.motion.accelerate = True
 
         if event.type == pygame.KEYUP:               
-            # checking if key "A" was pressed
             if event.key in (pygame.K_UP, pygame.K_DOWN):
-                # car.motion.in_motion = False
                 print("Stopping")
-                car.motion.stop()
+                car.motion.accelerate = False
 
     keys = pygame.key.get_pressed()
     if True in keys:
@@ -65,10 +64,6 @@ while run:
             car.motion.rotate("R")
 
         pygame.time.delay(1)
-
-
-
-
 
     if actual_time - rect_pulse_timer > 1:
         rect_pulse_timer = actual_time
@@ -86,7 +81,7 @@ while run:
         print_debug_timer = actual_time
         # print('rotation:', car.rotation)
         if speed_last != car.motion.speed_actual:
-            print("speed:", car.motion.speed_actual, "in motion:", car.motion.in_motion)
+            print("speed:", car.motion.speed_actual)
 
         speed_last = car.motion.speed_actual
 
@@ -94,14 +89,9 @@ while run:
     if actual_time - tick_timer > 1/60:
         tick_timer = actual_time
 
-        if car.motion.in_motion:
-            car.motion.calculate_speed()
-            car.motion.calculate_movement_vector()
-            car.motion.set_new_position()
-
-
-
-            # car.move()
+        car.motion.calculate_speed()
+        car.motion.calculate_movement_vector()
+        car.motion.set_new_position()
         
         # playerImg = pygame.image.load(img_path)
         playerImg = pygame.image.load(img_path).convert_alpha(win)
